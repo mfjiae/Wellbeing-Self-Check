@@ -63,7 +63,7 @@ svg{display:block;margin:6px auto;max-width:100%}
 <div class="card">
 <h2>Your wellbeing profile</h2>
 <p class="mute">Scores run from 1 to 10. A higher score means that area needs more attention.</p>
-<svg id="radar" viewBox="0 0 320 300" role="img" aria-label="Radar chart of the four wellbeing dimensions"></svg>
+<svg id="radar" viewBox="0 0 360 300" role="img" aria-label="Radar chart of the four wellbeing dimensions"></svg>
 <div class="res" id="bars"></div>
 <div id="recs"></div>
 <p class="note">If you are feeling overwhelmed, please reach out to your Employee Assistance Program or call Lifeline on 13 11 14.</p>
@@ -75,8 +75,8 @@ svg{display:block;margin:6px auto;max-width:100%}
 var DIM={
 T:{name:"Taha Tinana",label:"Physical",color:"var(--t)",prog:"Nurse Physical Wellbeing Program",desc:"Build recovery into your shifts with warm-ups, short stretches and the Nurse Fitness Club."},
 H:{name:"Taha Hinengaro",label:"Mental",color:"var(--h)",prog:"Nurses Check-In Program",desc:"Fortnightly check-ins to voice how you feel, debrief tough shifts and reach the right support."},
-F:{name:"Taha Whānau",label:"Relationships",color:"var(--f)",prog:"Nurse Connection Program",desc:"Monthly shared meals, small-group conversations and peer appreciation to strengthen belonging."},
-W:{name:"Taha Wairua",label:"Meaning",color:"var(--w)",prog:"Nurse Meaning & Connection Program",desc:"Short meaning check-ins, guided pauses and Values in Practice sessions to reconnect with purpose."}};
+F:{name:"Taha Whānau",label:"Family",color:"var(--f)",prog:"Nurse Connection Program",desc:"Monthly shared meals, small-group conversations and peer appreciation to strengthen belonging."},
+W:{name:"Taha Wairua",label:"Spiritual",color:"var(--w)",prog:"Nurse Meaning & Connection Program",desc:"Short meaning check-ins, guided pauses and Values in Practice sessions to reconnect with purpose."}};
 var Q=[
 ["T","I feel physically exhausted by the end of my shift."],
 ["H","I feel anxious, tense or overwhelmed while I'm at work."],
@@ -128,7 +128,7 @@ function finish(){
 }
 function band(s){return s<=4?"Doing well":s<=7?"Needs some attention":"Needs priority attention"}
 function draw(sc,keys){
- var cx=160,cy=150,R=105,ax={T:[0,-1],H:[1,0],F:[0,1],W:[-1,0]},s="";
+ var cx=180,cy=150,R=105,ax={T:[0,-1],H:[1,0],F:[0,1],W:[-1,0]},s="";
  [2.5,5,7.5,10].forEach(function(l){var p=Object.keys(ax).map(function(d){return(cx+ax[d][0]*R*l/10)+","+(cy+ax[d][1]*R*l/10)}).join(" ");s+='<polygon points="'+p+'" fill="none" stroke="var(--line)"/>'});
  Object.keys(ax).forEach(function(d){s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+ax[d][0]*R)+'" y2="'+(cy+ax[d][1]*R)+'" stroke="var(--line)"/>'});
  var pts=Object.keys(ax).map(function(d){return(cx+ax[d][0]*R*sc[d]/10)+","+(cy+ax[d][1]*R*sc[d]/10)}).join(" ");
