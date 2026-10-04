@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nurse Wellbeing Self-Check</title>
+<style>
+:root{--bg:#f3f6f4;--card:#fff;--ink:#17302b;--mute:#5d726c;--line:#d5e0db;--accent:#1f6f66;--accent-ink:#fff;--soft:#e2efec;
+--t:#c2603a;--h:#3a6ec2;--f:#8a5ab8;--w:#2f8f6a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1b19;--card:#172724;--ink:#e6f1ee;--mute:#9bb2ac;--line:#2a403b;--accent:#5fc4b6;--accent-ink:#0b1b18;--soft:#1f3834;--t:#e58a65;--h:#7aa2ec;--f:#b78be0;--w:#5fc79b}}
+:root[data-theme="dark"]{--bg:#0f1b19;--card:#172724;--ink:#e6f1ee;--mute:#9bb2ac;--line:#2a403b;--accent:#5fc4b6;--accent-ink:#0b1b18;--soft:#1f3834;--t:#e58a65;--h:#7aa2ec;--f:#b78be0;--w:#5fc79b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:640px;margin:0 auto;padding:24px 18px 56px}
+h1,h2{font-family:Georgia,"Source Serif 4",serif;line-height:1.2;margin:0 0 10px}
+h1{font-size:2rem}h2{font-size:1.5rem}
+p{margin:0 0 12px}
+.mute{color:var(--mute)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:13px 16px;text-align:left;width:100%}
+button:hover{border-color:var(--accent)}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);text-align:center;font-weight:600;width:auto;padding:12px 26px}
+button.link{background:none;border:none;color:var(--mute);width:auto;padding:8px 0;text-decoration:underline}
+.opts{display:grid;gap:10px;margin-top:18px}
+.bar{height:6px;background:var(--line);border-radius:3px;margin-bottom:20px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.q{font-size:1.25rem;font-family:Georgia,serif;line-height:1.4}
+.row{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+.hide{display:none}
+.res{display:grid;gap:14px;margin:18px 0}
+.m{display:grid;grid-template-columns:130px 1fr 44px;gap:10px;align-items:center;font-size:.95rem}
+.m b{font-weight:600}
+.track{height:12px;background:var(--line);border-radius:6px;overflow:hidden}
+.track i{display:block;height:100%;border-radius:6px}
+.rec{border-left:5px solid var(--accent);background:var(--soft);padding:14px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+.rec h3{margin:0 0 4px;font-size:1.1rem}
+svg{display:block;margin:6px auto;max-width:100%}
+.note{font-size:.88rem;color:var(--mute);margin-top:18px}
+@media (max-width:480px){.m{grid-template-columns:100px 1fr 38px}}
+</style>
+</head>
+<body>
+<main>
+<section id="intro" class="card">
+<h1>Wellbeing Self-Check</h1>
+<p>24 short statements about your last two weeks at work. Your answers build a profile across the four dimensions of Te Whare Tapa Whā and point you to the training that fits you best.</p>
+<p class="mute">This is a reflection tool, not a clinical assessment. It takes about 4 minutes.</p>
+<button class="primary" id="start">Start the self-check</button>
+</section>
+
+<section id="quiz" class="card hide">
+<div class="bar"><i id="prog" style="width:0"></i></div>
+<div class="mute" id="count"></div>
+<p class="q" id="qtext"></p>
+<div class="opts" id="opts"></div>
+<div class="row"><button class="link" id="back">Back</button></div>
+</section>
+
+<section id="result" class="hide">
+<div class="card">
+<h2>Your wellbeing profile</h2>
+<p class="mute">Scores run from 1 to 10. A higher score means that area needs more attention.</p>
+<svg id="radar" viewBox="0 0 320 300" role="img" aria-label="Radar chart of the four wellbeing dimensions"></svg>
+<div class="res" id="bars"></div>
+<div id="recs"></div>
+<p class="note">If you are feeling overwhelmed, please reach out to your Employee Assistance Program or call Lifeline on 13 11 14.</p>
+<div class="row"><button class="primary" id="again">Retake the self-check</button></div>
+</div>
+</section>
+</main>
+<script>
+var DIM={
+T:{name:"Taha Tinana",label:"Physical",color:"var(--t)",prog:"Nurse Physical Wellbeing Program",desc:"Build recovery into your shifts with warm-ups, short stretches and the Nurse Fitness Club."},
+H:{name:"Taha Hinengaro",label:"Mental",color:"var(--h)",prog:"Nurses Check-In Program",desc:"Fortnightly check-ins to voice how you feel, debrief tough shifts and reach the right support."},
+F:{name:"Taha Whānau",label:"Relationships",color:"var(--f)",prog:"Nurse Connection Program",desc:"Monthly shared meals, small-group conversations and peer appreciation to strengthen belonging."},
+W:{name:"Taha Wairua",label:"Meaning",color:"var(--w)",prog:"Nurse Meaning & Connection Program",desc:"Short meaning check-ins, guided pauses and Values in Practice sessions to reconnect with purpose."}};
+var Q=[
+["T","I feel physically exhausted by the end of my shift."],
+["H","I feel anxious, tense or overwhelmed while I'm at work."],
+["F","I feel isolated from my colleagues."],
+["W","I question whether my work still matters."],
+["T","I wake up unrefreshed or get less sleep than I need."],
+["H","I keep replaying stressful events from my shift after I go home."],
+["F","I don't have anyone at work I feel comfortable asking for help."],
+["W","I feel disconnected from the reasons I became a nurse."],
+["T","I have muscle aches, back pain or sore feet and joints after work."],
+["H","I find it hard to switch off from work."],
+["F","I feel like I don't truly belong in my team."],
+["W","Patient suffering or death stays with me, and I struggle to make sense of it."],
+["T","I skip meals or rely on quick, unhealthy food during shifts."],
+["H","I feel irritable, low or emotionally flat."],
+["F","I rarely get time to connect with colleagues beyond handovers and tasks."],
+["W","Ethical dilemmas at work leave me feeling conflicted or unsettled."],
+["T","I find it hard to recover physically between shifts."],
+["H","I hold back my feelings because there is no safe place or time to share them."],
+["F","After work I'm too tired to keep up with family and friends."],
+["W","I feel like I'm just going through the motions at work."],
+["T","I don't get enough time or energy to move my body the way I'd like."],
+["H","After difficult events, such as aggression or critical incidents, I don't get a chance to debrief."],
+["F","I feel my efforts aren't noticed or appreciated by my team."],
+["W","I feel disconnected from what grounds me, such as values, culture, faith, community or nature."]];
+var SC=["Never","Rarely","Sometimes","Often"];
+var order=[],ans=[],i=0;
+function $(id){return document.getElementById(id)}
+function shuffle(a){for(var k=a.length-1;k>0;k--){var j=Math.floor(Math.random()*(k+1));var t=a[k];a[k]=a[j];a[j]=t}return a}
+function show(id){["intro","quiz","result"].forEach(function(s){$(s).classList.toggle("hide",s!==id)});window.scrollTo(0,0)}
+function begin(){order=shuffle(Q.map(function(_,k){return k}));ans=[];i=0;show("quiz");render()}
+function render(){
+ var q=Q[order[i]];
+ $("count").textContent="Question "+(i+1)+" of "+Q.length;
+ $("prog").style.width=(i/Q.length*100)+"%";
+ $("qtext").textContent=q[1];
+ var o=$("opts");o.innerHTML="";
+ SC.forEach(function(label,v){var b=document.createElement("button");b.textContent=label;b.onclick=function(){pick(v)};o.appendChild(b)});
+ $("back").style.visibility=i?"visible":"hidden";
+}
+function pick(v){ans[i]=v;i++;if(i<Q.length)render();else finish()}
+function scale(raw){return Math.round(1+raw*9/18)}
+function finish(){
+ var raw={T:0,H:0,F:0,W:0};
+ order.forEach(function(qi,k){raw[Q[qi][0]]+=ans[k]});
+ var sc={};Object.keys(raw).forEach(function(d){sc[d]=scale(raw[d])});
+ var keys=Object.keys(sc).sort(function(a,b){return sc[b]-sc[a]});
+ draw(sc,keys);show("result");
+}
+function band(s){return s<=4?"Doing well":s<=7?"Needs some attention":"Needs priority attention"}
+function draw(sc,keys){
+ var cx=160,cy=150,R=105,ax={T:[0,-1],H:[1,0],F:[0,1],W:[-1,0]},s="";
+ [2.5,5,7.5,10].forEach(function(l){var p=Object.keys(ax).map(function(d){return(cx+ax[d][0]*R*l/10)+","+(cy+ax[d][1]*R*l/10)}).join(" ");s+='<polygon points="'+p+'" fill="none" stroke="var(--line)"/>'});
+ Object.keys(ax).forEach(function(d){s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+ax[d][0]*R)+'" y2="'+(cy+ax[d][1]*R)+'" stroke="var(--line)"/>'});
+ var pts=Object.keys(ax).map(function(d){return(cx+ax[d][0]*R*sc[d]/10)+","+(cy+ax[d][1]*R*sc[d]/10)}).join(" ");
+ s+='<polygon points="'+pts+'" fill="var(--accent)" fill-opacity=".25" stroke="var(--accent)" stroke-width="2.5"/>';
+ var lp={T:[cx,22,"middle"],H:[cx+R+8,cy+4,"start"],F:[cx,cy+R+22,"middle"],W:[cx-R-8,cy+4,"end"]};
+ Object.keys(lp).forEach(function(d){s+='<text x="'+lp[d][0]+'" y="'+lp[d][1]+'" text-anchor="'+lp[d][2]+'" font-size="13" font-weight="600" fill="var(--ink)">'+DIM[d].label+'</text>'});
+ $("radar").innerHTML=s;
+ var b="";
+ keys.forEach(function(d){b+='<div class="m"><b>'+DIM[d].name+'</b><div class="track" title="'+band(sc[d])+'"><i style="width:'+sc[d]*10+'%;background:'+DIM[d].color+'"></i></div><span>'+sc[d]+'/10</span></div>'});
+ $("bars").innerHTML=b;
+ var top=sc[keys[0]],r="";
+ if(top<=4){
+  r='<div class="rec"><h3>Your wellbeing looks balanced</h3><p>No area stands out right now. You are welcome to explore any of the four programs below, and to retake this check in 2 to 4 weeks.</p></div>';
+ }else{
+  var ties=keys.filter(function(d){return sc[d]===top});
+  if(ties.length>1){
+   r='<div class="rec"><h3>Two or more areas stand out equally</h3><p>Choose the program that feels most useful to you today.</p></div>';
+   ties.forEach(function(d){r+=card(d,"Priority area")});
+  }else{
+   r+=card(keys[0],"Primary area for support");
+   var s2=keys[1];
+   if(sc[s2]>=5||top-sc[s2]<=1)r+=card(s2,"Secondary area to keep an eye on");
+  }
+ }
+ r+='<p class="mute">All four programs stay open to you, so you can explore any of them whenever you like.</p>';
+ $("recs").innerHTML=r;
+}
+function card(d,tag){return '<div class="rec" style="border-left-color:'+DIM[d].color+'"><h3>'+DIM[d].prog+'</h3><p class="mute" style="margin-bottom:6px">'+tag+': '+DIM[d].name+' ('+band(sc10(d))+')</p><p>'+DIM[d].desc+'</p></div>'}
+function sc10(d){var t=0;order.forEach(function(qi,k){if(Q[qi][0]===d)t+=ans[k]});return scale(t)}
+$("start").onclick=begin;
+$("again").onclick=begin;
+$("back").onclick=function(){if(i>0){i--;render()}};
+</script>
+</body>
+</html>
